@@ -16,7 +16,6 @@ void INIT_INTERUPT(){
 void run_interupt(){
 
     ISR(INT0_vect){
-
        PORTA =0x00;
     }
 
