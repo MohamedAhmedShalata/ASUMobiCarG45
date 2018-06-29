@@ -1,116 +1,393 @@
-#define F_CPU 16000000UL
+/*
+ * infinity 2 phase 3.c
+ *
+ * Created: 30/06/2018 12:09:49 ص
+ * Author : MohameD AhmeD
+ */ 
+#define F_CPU 8000000UL
+#define  PI 3.14159265359
 #include <avr/io.h>
 #include <util/delay.h>
 #include <math.h>
 #include <stdlib.h>
 
-void init_PWM(void);
-void PWM_PD7(unsigned char pulse_width);
 
-int main(void)
-{	
-init_PWM();
-	DDRB = 0;
-	PORTB = 0xFF;
-	DDRA = 0x0F;
-	uint8_t pressed = 10;
-	while(1)
+void InitPWM(){
+	
+	TCCR0=(1<<WGM00)|(1<<WGM01)|(1<<COM01)|(1<<CS00);
+}
+
+void pulse(uint8_t duty){
+	OCR0=duty;	
+}
+void Forward(void){
+	PORTA |=(1<<PA1) | (1<<PA3);
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA0 );
+}
+
+void Left(void){
+	PORTA |=(1<<PA1) | (1<<PA2);
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA3 );
+}
+
+void Right(void){
+	PORTA |=(1<<PA0) | (1<<PA3);
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA1 );
+}
+
+void Backward(void){ 
+	PORTA |=(1<<PA0) | (1<<PA2);
+	PORTA &= ~( 1 << PA3 );
+	PORTA &= ~( 1 << PA1 );
+}
+
+void Stop(void){
+	
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA3 );
+}
+
+uint16_t GoStraight(uint8_t distance){	
+return distance /0.0925;
+}
+
+uint16_t Rotation(uint8_t Angle){
+	return Angle *3.334;
+}
+
+
+
+void Regtangle(void){
+for(uint8_t i = 0 ; i < 4 ;i++ ){
+	PORTA |=(1<<PA1) | (1<<PA3);
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA0 );
+	_delay_ms(GoStraight(42));
+	
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(500);
+	
+	PORTA |=(1<<PA1) | (1<<PA2);
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(Rotation(100));
+	
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(500);
+}
+	}
+	
+	
+void Circle(void){
+for (uint8_t i = 0 ; i <35 ; i++)
+{
+	PORTA |=(1<<PA1) | (1<<PA3); //front 
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA0 );
+	_delay_ms(GoStraight(7));
+	
+	PORTA &= ~( 1 << PA0 ); // stop
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(10);
+	
+	PORTA |=(1<<PA1) | (1<<PA2); //left
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(Rotation(18));
+	
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(10);
+}
+}
+
+ 
+ 
+
+void Infinty2(void){
+	uint8_t y = 15 ;
+	
+	for (uint8_t i = 0; i < 9; i++)   //Start with quarter circle from right of the area
 	{
-	  
-	if((PINB == 0b11111011) || (PINB == 0b11100000)) // go forward
-		{
-		pressed = 0;
-		PWM_PD7(150);
 		
 		PORTA |=(1<<PA1) | (1<<PA3);
 		PORTA &= ~( 1 << PA2 );
 		PORTA &= ~( 1 << PA0 );
-		}
-else if ((PINB == 0b11111100) || (PINB == 0b11111110)|| (PINB == 0b11111101))  // go RIGHT
-		{
-		pressed = 1;
-		PWM_PD7(150);
-			
-		PORTA |= ( 1 << PA1 ) | ( 1 << PA2 );
+		_delay_ms(GoStraight(7));
+		
 		PORTA &= ~( 1 << PA0 );
-		PORTA &= ~( 1 << PA3 );
-		
-		}
-		
-else if ((PINB == 0b11100111) || (PINB == 0b11101111)|| (PINB == 0b11110111)) // go Left
-		{
-		pressed = 2;
-		PWM_PD7(150);
-					
-        PORTA |= ( 1 << PA0 ) | ( 1 << PA3 );
 		PORTA &= ~( 1 << PA1 );
 		PORTA &= ~( 1 << PA2 );
-		}
-else if (PINB == 0b11111111)  // 
-		{
-		 if(pressed == 0)
-		 {  
-			PWM_PD7(150);
-					
-			PORTA |=(1<<PA2) | (1<<PA0);
-			PORTA &= ~( 1 << PA1 );
-			PORTA &= ~( 1 << PA3 );
-
-		 }
-	else if(pressed == 1)
-			{
-			PWM_PD7(150);
-					
-		PORTA |= ( 1 << PA1 ) | ( 1 << PA2 );
+		PORTA &= ~( 1 << PA3 );
+		_delay_ms(10);
+		
+		PORTA |=(1<<PA1) | (1<<PA2);
 		PORTA &= ~( 1 << PA0 );
 		PORTA &= ~( 1 << PA3 );
-			}
-	else if(pressed == 2)
-			{
-			PWM_PD7(150);
-					
-		PORTA |= ( 1 << PA0 ) | ( 1 << PA3 );
+		_delay_ms(Rotation(18));
+		
+		PORTA &= ~( 1 << PA0 );
 		PORTA &= ~( 1 << PA1 );
 		PORTA &= ~( 1 << PA2 );
-			
-			
-			}
-		else
-			pressed = 10;
-		}
-		
+		PORTA &= ~( 1 << PA3 );
+		_delay_ms(10);
 		
 	}
-	return 0;
+	// then rotate 30 degree left to be ready  to take straight line
+	PORTA |=(1<<PA1) | (1<<PA2);
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(Rotation(30));
+	
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(10);
+	// taking straight line
+	 for (uint8_t i = 0 ; i <35 ; i++)
+	 {
+		 PORTA |=(1<<PA1) | (1<<PA3); //front
+		 PORTA &= ~( 1 << PA2 );
+		 PORTA &= ~( 1 << PA0 );
+		 _delay_ms(GoStraight(15));
+		 
+		 PORTA &= ~( 1 << PA0 ); // stop
+		 PORTA &= ~( 1 << PA1 );
+		 PORTA &= ~( 1 << PA2 );
+		 PORTA &= ~( 1 << PA3 );
+		 _delay_ms(10);
+		 
+		 PORTA |=(1<<PA1) | (1<<PA2); //left
+		 PORTA &= ~( 1 << PA0 );
+		 PORTA &= ~( 1 << PA3 );
+		 _delay_ms(Rotation(16));
+		 
+		 PORTA &= ~( 1 << PA0 );
+		 PORTA &= ~( 1 << PA1 );
+		 PORTA &= ~( 1 << PA2 );
+		 PORTA &= ~( 1 << PA3 );
+		 _delay_ms(10);
+		  y++;
+		  if (y==110)
+		  {
+			  break ;
+		  }
+		 }
+		y=15;
+		 
+	 
+	 
+	
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(10);
+	// turn right with 30 degree  to be ready to take half circle
+	PORTA |=(1<<PA0) | (1<<PA3);
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	_delay_ms(Rotation(30));
+	
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(10);
+	// taking the half circle
+	for (uint8_t i = 0; i < 9; i++)
+	{
+		
+		PORTA |=(1<<PA1) | (1<<PA3);
+		PORTA &= ~( 1 << PA2 );
+		PORTA &= ~( 1 << PA0 );
+		_delay_ms(GoStraight(7));
+		
+		PORTA &= ~( 1 << PA0 );
+		PORTA &= ~( 1 << PA1 );
+		PORTA &= ~( 1 << PA2 );
+		PORTA &= ~( 1 << PA3 );
+		_delay_ms(10);
+		
+		PORTA |=(1<<PA0) | (1<<PA3);
+		PORTA &= ~( 1 << PA1 );
+		PORTA &= ~( 1 << PA2 );
+		_delay_ms(Rotation(16));
+		
+		PORTA &= ~( 1 << PA0 );
+		PORTA &= ~( 1 << PA1 );
+		PORTA &= ~( 1 << PA2 );
+		PORTA &= ~( 1 << PA3 );
+		_delay_ms(10);
+	}
+	
+	//turn right with 30 degree to be ready to take the striaght line
+	PORTA |=(1<<PA0) | (1<<PA3);
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	_delay_ms(Rotation(30));
+	
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(10);
+	// taking the straight line
+	  for (uint8_t i = 0 ; i <35 ; i++)
+	  {
+		  PORTA |=(1<<PA1) | (1<<PA3); //front
+		  PORTA &= ~( 1 << PA2 );
+		  PORTA &= ~( 1 << PA0 );
+		  _delay_ms(GoStraight(15));
+		  
+		  PORTA &= ~( 1 << PA0 ); // stop
+		  PORTA &= ~( 1 << PA1 );
+		  PORTA &= ~( 1 << PA2 );
+		  PORTA &= ~( 1 << PA3 );
+		  _delay_ms(10);
+		  
+		  PORTA |=(1<<PA0) | (1<<PA3); // turn right 
+		  PORTA &= ~( 1 << PA2 );
+		  PORTA &= ~( 1 << PA1 );
+		  
+		  PORTA &= ~( 1 << PA0 );
+		  PORTA &= ~( 1 << PA1 );
+		  PORTA &= ~( 1 << PA2 );
+		  PORTA &= ~( 1 << PA3 );
+		  _delay_ms(10);
+		    y++;
+		    if (y==110)
+		    {
+			    break ;
+		    }
+	  }
+	
+	  
+  
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(10);
+	// turn left with 30 degree to be ready to take the quarter circle 
+	PORTA |=(1<<PA1) | (1<<PA2);
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(Rotation(30));
+	
+	PORTA &= ~( 1 << PA0 );
+	PORTA &= ~( 1 << PA1 );
+	PORTA &= ~( 1 << PA2 );
+	PORTA &= ~( 1 << PA3 );
+	_delay_ms(10);
+	// taking the quarter circle
+	for (uint8_t i = 0; i < 9; i++)
+	{
+		
+		PORTA |=(1<<PA1) | (1<<PA3);
+		PORTA &= ~( 1 << PA2 );
+		PORTA &= ~( 1 << PA0 );
+		_delay_ms(GoStraight(7));
+		
+		PORTA &= ~( 1 << PA0 );
+		PORTA &= ~( 1 << PA1 );
+		PORTA &= ~( 1 << PA2 );
+		PORTA &= ~( 1 << PA3 );
+		_delay_ms(10);
+		
+		PORTA |=(1<<PA1) | (1<<PA2);
+		PORTA &= ~( 1 << PA0 );
+		PORTA &= ~( 1 << PA3 );
+		_delay_ms(Rotation(18));
+		
+		PORTA &= ~( 1 << PA0 );
+		PORTA &= ~( 1 << PA1 );
+		PORTA &= ~( 1 << PA2 );
+		PORTA &= ~( 1 << PA3 );
+		_delay_ms(10);
+		
+	}
 }
 
 
-void init_PWM(void)
-	{
 
-		//DDRB  |=(1<<PB3	);
-		DDRD  |=(1<<PD7); //(1<<PD4)|(1<<PD5)|
 
-		//TCCR0 |=(1<<WGM00)|(1<<COM01)|(1<<CS01)|(1<<CS00); // TCNT0(counter) & OCR0(analog value) (1<<COM00)||(1<<WGM01) 
-		TCCR2 |=(1<<WGM20)|(1<<COM21)|(1<<CS22);  // TCNT2(counter) & OCR2(analog value) |(1<<COM20)|(1<<CS21) 
-		//TCCR1A|=(1<<COM1A1)|(1<<COM1B1)|(1<<WGM10); // TCNT1(counter) & CR1AL(analog value) (1<<COM1B0)|(1<<COM1A0)|
 
-			//Start PWM
-		//TCCR1B|=(1<<CS11)|(1<<CS10); //TCNT1(counter) & CR1BL(analog value)
-		//TCNT0  =0;
-		TCNT2  =0;
-		//TCNT1  =0;
-
+int main(void)
+{   
+	 
+	InitPWM();
+	DDRA = 0xFF;
+	DDRB |= (1<<PB3);
+		
+    /* Replace with your application code */
+    while (1) 
+    {
+		PORTA |= (1<<PA4);
+		_delay_ms(1000);
+		pulse(215);
+		Infinty2();
+		
+  /*    for (Theta = (PI/36) ; Theta < 2*PI ; Theta= Theta + (PI/36))
+      {
+	     r =  50 * ((sqrt(cos(2* Theta))) - (sqrt(cos((Theta-(PI/36))*2))));
+	
+	      PORTA |=(1<<PA1) | (1<<PA3);
+	      PORTA &= ~( 1 << PA2 );
+	      PORTA &= ~( 1 << PA0 );
+	      _delay_ms(GoStraight(r));
+	
+		PORTA &= ~( 1 << PA0 );
+		PORTA &= ~( 1 << PA1 );
+		PORTA &= ~( 1 << PA2 );
+		PORTA &= ~( 1 << PA3 );
+			_delay_ms(10);
+	
+		PORTA |=(1<<PA1) | (1<<PA2);
+		PORTA &= ~( 1 << PA0 );
+		PORTA &= ~( 1 << PA3 );
+		_delay_ms(Rotation(5));
+	
+		PORTA &= ~( 1 << PA0 );
+		PORTA &= ~( 1 << PA1 );
+		PORTA &= ~( 1 << PA2 );
+		PORTA &= ~( 1 << PA3 );
+		_delay_ms(10);
+	
+	}  
+	*/
+		
+			PORTA &= ~( 1 << PA0 );
+			PORTA &= ~( 1 << PA1 );
+			PORTA &= ~( 1 << PA2 );
+			PORTA &= ~( 1 << PA3 );
+			pulse(0);
+			PORTA &= ~(1<<PA4);
+			_delay_ms(11000);
 	}
-
-/*void PWM_PB3(unsigned char pulse_width)
-	{
-		OCR0   = pulse_width;
-	}
+}
+/* for straight distance
+delayTime = 60 /0.0925; // speed cm/ms
+_delay_ms(delayTime);
 */
 
-void PWM_PD7(unsigned char pulse_width)
-	{
-		OCR2   = pulse_width;
-	}
-
+/*for rotation
+delayTimeRotation = 90 * 3.33334;
+_delay_ms(delayTimeRotation);
+*/
